@@ -1,2 +1,4 @@
 ccxt
 pydantic
+pandas
+ta
