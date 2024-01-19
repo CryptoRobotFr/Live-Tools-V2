@@ -1,7 +1,9 @@
 from typing import List
 import ccxt.async_support as ccxt
 import asyncio
-
+import pandas as pd
+import time
+import itertools
 from pydantic import BaseModel
 
 class UsdtBalance(BaseModel):
@@ -19,16 +21,30 @@ class Order(BaseModel):
     type: str
     side: str
     price: float
-    amount: float
+    size: float
+    reduce: bool
     filled: float
     remaining: float
+    timestamp: int
+    
+class TriggerOrder(BaseModel):
+    id: str
+    pair: str
+    type: str
+    side: str
+    price: float
+    trigger_price: float
+    size: float
+    reduce: bool
     timestamp: int
 
 class Position(BaseModel):
     pair: str
     side: str
-    amount: float
+    size: float
+    usd_size: float
     entry_price: float
+    current_price: float
     unrealizedPnl: float
     liquidation_price: float
     margin_mode: str
@@ -66,8 +82,37 @@ class PerpBitget:
         
     def pair_to_ext_pair(self, pair) -> str:
         return pair.replace(":USDT", "")
+    
+    async def get_last_ohlcv(self, pair, timeframe, limit=1000) -> pd.DataFrame:
+        pair = self.ext_pair_to_pair(pair)
+        bitget_limit = 200
+        ts_dict = {
+            "1m": 1 * 60 * 1000,
+            "5m": 5 * 60 * 1000,
+            "15m": 15 * 60 * 1000,
+            "1h": 60 * 60 * 1000,
+            "2h": 2 * 60 * 60 * 1000,
+            "4h": 4 * 60 * 60 * 1000,
+            "1d": 24 * 60 * 60 * 1000,
+        }
+        end_ts = int(time.time() * 1000)
+        start_ts = end_ts - ((limit) * ts_dict[timeframe])
+        current_ts = start_ts
+        tasks = []
+        while current_ts < end_ts:
+            req_end_ts = min(current_ts + (bitget_limit * ts_dict[timeframe]), end_ts)
+            tasks.append(self._session.fetch_ohlcv(pair, timeframe, params={"limit":bitget_limit, "startTime":str(current_ts), "endTime": str(req_end_ts)}))
+            current_ts += (bitget_limit * ts_dict[timeframe]) + 1
+        ohlcv_unpack = await asyncio.gather(*tasks)
+        ohlcv_list = list(itertools.chain.from_iterable(ohlcv_unpack))
+        df = pd.DataFrame(ohlcv_list, columns=['date', 'open', 'high', 'low', 'close', 'volume'])
+        df = df.set_index(df["date"])
+        df.index = pd.to_datetime(df.index, unit='ms')
+        df = df.sort_index()
+        del df["date"]
+        return df
 
-    async def fetch_balance(self) -> UsdtBalance:
+    async def get_balance(self) -> UsdtBalance:
         resp = await self._session.fetch_balance()
         return UsdtBalance(
             total=resp["USDT"]["total"],
@@ -111,8 +156,10 @@ class PerpBitget:
             return_positions.append(Position(
                 pair=self.pair_to_ext_pair(position["symbol"]),
                 side=position["side"],
-                amount=position["contracts"] * position["contractSize"],
+                size=position["contracts"] * position["contractSize"],
+                usd_size=round((position["contracts"] * position["contractSize"]) * position["markPrice"], 2),
                 entry_price=position["entryPrice"],
+                current_price=position["markPrice"],
                 unrealizedPnl=position["unrealizedPnl"],
                 liquidation_price=liquidation_price,
                 leverage=position["leverage"],
@@ -124,13 +171,39 @@ class PerpBitget:
             ))
         return return_positions
     
-    async def place_order(self, pair, side, price, amount, type="limit", reduce=False) -> Order:
+    async def place_order(self, pair, side, price, size, type="limit", reduce=False, margin_mode="crossed") -> Order:
         pair = self.ext_pair_to_pair(pair)
-        resp = await self._session.create_order(pair, type, side, amount, price, params={"reduceOnly": reduce})
+        trade_side = "Open" if reduce is False else "Close"
+        resp = await self._session.create_order(
+            symbol=pair,
+            type=type,
+            side=side,
+            amount=size,
+            price=price,
+            params={"reduceOnly": reduce, "tradeSide": trade_side, "marginMode": margin_mode}
+        )
         order_id = resp["id"]
         pair = self.pair_to_ext_pair(resp["symbol"])
         order = await self.get_order_by_id(order_id, pair)
         return order
+    
+    async def place_trigger_order(self, pair, side, price, trigger_price, size, type="limit", reduce=False) -> Info:
+        pair = self.ext_pair_to_pair(pair)
+        trade_side = "Open" if reduce is False else "Close"
+        trigger_order = await self._session.create_trigger_order(
+            symbol=pair,
+            type=type,
+            side=side,
+            size=size,
+            price=price,
+            triggerPrice=trigger_price,
+            params={"reduceOnly": reduce, "tradeSide": trade_side}
+        )
+        resp = Info(
+            success=True,
+            message="Trigger Order set up"
+        )
+        return resp
     
     async def get_open_orders(self, pair) -> List[Order]:
         pair = self.ext_pair_to_pair(pair)
@@ -143,9 +216,30 @@ class PerpBitget:
                 type=order["type"],
                 side=order["side"],
                 price=order["price"],
-                amount=order["amount"],
+                size=order["amount"],
+                reduce=order["reduceOnly"],
                 filled=order["filled"],
                 remaining=order["remaining"],
+                timestamp=order["timestamp"],
+            ))
+        return return_orders
+    
+    async def get_open_trigger_orders(self, pair):
+        pair = self.ext_pair_to_pair(pair)
+        resp = await self._session.fetch_open_orders(pair, params={"stop": True})
+        return_orders = []
+        for order in resp:
+            reduce = True if order["reduceOnly"] else False
+            price = order["price"] if order["price"] else 0.0
+            return_orders.append(TriggerOrder(
+                id=order["id"],
+                pair=self.pair_to_ext_pair(order["symbol"]),
+                type=order["type"],
+                side=order["side"],
+                price=price,
+                trigger_price=order["triggerPrice"],
+                size=order["amount"],
+                reduce=reduce,
                 timestamp=order["timestamp"],
             ))
         return return_orders
@@ -159,17 +253,33 @@ class PerpBitget:
             type=resp["type"],
             side=resp["side"],
             price=resp["price"],
-            amount=resp["amount"],
+            size=resp["amount"],
+            reduce=resp["reduceOnly"],
             filled=resp["filled"],
             remaining=resp["remaining"],
             timestamp=resp["timestamp"],
         )
-    
-    async def cancel_orders(self, pair):
+        
+    async def cancel_orders(self, pair, ids=[]):
         try:
             pair = self.ext_pair_to_pair(pair)
-            resp = await self._session.cancel_all_orders(pair)
-            return Info(success=True, message=f"{len(resp["data"]["successList"])} orders cancelled")
+            resp = await self._session.cancel_orders(
+                ids=ids,
+                symbol=pair,
+            )
+            return Info(success=True, message=f"{len(resp)} Orders cancelled")
+        except Exception as e:
+            return Info(success=False, message="Error or no orders to cancel")
+        
+    async def cancel_trigger_orders(self, pair, ids=[]):
+        try:
+            pair = self.ext_pair_to_pair(pair)
+            resp = await self._session.cancel_orders(
+                ids=ids,
+                symbol=pair,
+                params={"stop": True}
+            )
+            return Info(success=True, message=f"{len(resp)} Trigger Orders cancelled")
         except Exception as e:
             return Info(success=False, message="Error or no orders to cancel")
             
