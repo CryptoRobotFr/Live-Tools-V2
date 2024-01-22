@@ -9,5 +9,5 @@ cd Live-Tools-V2
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-git update-index --assume-unchanged .\secret.py
+git update-index --assume-unchanged secret.py
 cd..
