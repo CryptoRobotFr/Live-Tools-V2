@@ -4,4 +4,4 @@
 
 > git clone https://github.com/CryptoRobotFr/Live-Tools-V2.git
 
-> bash install.sh
+> bash Live-Tools-V2/install.sh
