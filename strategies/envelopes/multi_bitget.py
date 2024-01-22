@@ -16,10 +16,11 @@ async def main():
     account = ACCOUNTS["bitget1"]
 
     margin_mode = "isolated"  # isolated or crossed
-    exchange_leverage = 5
+    exchange_leverage = 3
 
     tf = "1h"
-    size_leverage = 5
+    size_leverage = 3
+    sl = 0.3
     params = {
         "BTC/USDT": {
             "src": "close",
@@ -160,11 +161,18 @@ async def main():
         secret_api=account["secret_api"],
         password=account["password"],
     )
-    pairs = list(params.keys())
     invert_side = {"long": "sell", "short": "buy"}
     print(f"--- Execution started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---")
     try:
         await exchange.load_markets()
+
+        for pair in params.copy():
+            info = exchange.get_pair_info(pair)
+            if info is None:
+                print(f"Pair {pair} not found, removing from params...")
+                del params[pair]
+
+        pairs = list(params.keys())
 
         try:
             print(f"Setting {margin_mode} x{exchange_leverage} on {len(pairs)} pairs...")
@@ -294,6 +302,25 @@ async def main():
                     margin_mode=margin_mode,
                 )
             )
+            if position.side == "long":
+                sl_side = "sell"
+                sl_price = exchange.price_to_precision(position.pair, position.entry_price * (1 - sl))
+            elif position.side == "short":
+                sl_side = "buy"
+                sl_price = exchange.price_to_precision(position.pair, position.entry_price * (1 + sl))
+            tasks_close.append(
+                exchange.place_trigger_order(
+                    pair=position.pair,
+                    side=sl_side,
+                    trigger_price=sl_price,
+                    price=None,
+                    size=position.size,
+                    type="market",
+                    reduce=True,
+                    margin_mode=margin_mode,
+                    error=False,
+                )
+            )
             for i in range(
                 len(params[position.pair]["envelopes"])
                 - params[position.pair]["canceled_orders_buy"],
@@ -348,8 +375,9 @@ async def main():
                         error=False,
                     )
                 )
+            
 
-        print(f"Placing {len(tasks_close)} close limit order...")
+        print(f"Placing {len(tasks_close)} close SL / limit order...")
         await asyncio.gather(*tasks_close)  # Limit orders when in positions
 
         pairs_not_in_position = [

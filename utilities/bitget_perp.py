@@ -67,7 +67,7 @@ class PerpBitget:
             "secret": secret_api,
             "password": password,
             "enableRateLimit": True,
-            "rateLimit": 70,
+            "rateLimit": 100,
             "options": {
                 "defaultType": "future",
             },
@@ -90,6 +90,13 @@ class PerpBitget:
 
     def pair_to_ext_pair(self, pair) -> str:
         return pair.replace(":USDT", "")
+    
+    def get_pair_info(self, ext_pair) -> str:
+        pair = self.ext_pair_to_pair(ext_pair)
+        if pair in self.market:
+            return self.market[pair]
+        else: 
+            return None
 
     def amount_to_precision(self, pair: str, amount: float) -> float:
         pair = self.ext_pair_to_pair(pair)
@@ -339,9 +346,10 @@ class PerpBitget:
     async def get_open_trigger_orders(self, pair) -> List[TriggerOrder]:
         pair = self.ext_pair_to_pair(pair)
         resp = await self._session.fetch_open_orders(pair, params={"stop": True})
+        # print(resp)
         return_orders = []
         for order in resp:
-            reduce = True if order["reduceOnly"] else False
+            reduce = True if order["info"]["tradeSide"] == "close" else False
             price = order["price"] if order["price"] else 0.0
             return_orders.append(
                 TriggerOrder(
