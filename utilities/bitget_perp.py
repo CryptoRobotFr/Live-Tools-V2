@@ -271,7 +271,7 @@ class PerpBitget:
                 params={
                     "reduceOnly": reduce,
                     "tradeSide": trade_side,
-                    "marginMode": margin_mode,
+                    # "marginMode": margin_mode,
                 },
             )
             order_id = resp["id"]
@@ -310,7 +310,7 @@ class PerpBitget:
                 params={
                     "reduceOnly": reduce,
                     "tradeSide": trade_side,
-                    "marginMode": margin_mode,
+                    # "marginMode": margin_mode,
                 },
             )
             resp = Info(success=True, message="Trigger Order set up")
