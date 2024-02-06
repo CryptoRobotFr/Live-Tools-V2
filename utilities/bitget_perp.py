@@ -100,7 +100,10 @@ class PerpBitget:
 
     def amount_to_precision(self, pair: str, amount: float) -> float:
         pair = self.ext_pair_to_pair(pair)
-        return self._session.amount_to_precision(pair, amount)
+        try:
+            return self._session.amount_to_precision(pair, amount)
+        except Exception as e:
+            return 0
 
     def price_to_precision(self, pair: str, price: float) -> float:
         pair = self.ext_pair_to_pair(pair)
@@ -262,6 +265,7 @@ class PerpBitget:
         try:
             pair = self.ext_pair_to_pair(pair)
             trade_side = "Open" if reduce is False else "Close"
+            marginMode = "cross" if margin_mode == "crossed" else "isolated"
             resp = await self._session.create_order(
                 symbol=pair,
                 type=type,
@@ -271,7 +275,7 @@ class PerpBitget:
                 params={
                     "reduceOnly": reduce,
                     "tradeSide": trade_side,
-                    # "marginMode": margin_mode,
+                    "marginMode": margin_mode,
                 },
             )
             order_id = resp["id"]
@@ -300,6 +304,7 @@ class PerpBitget:
         try:
             pair = self.ext_pair_to_pair(pair)
             trade_side = "Open" if reduce is False else "Close"
+            marginMode = "cross" if margin_mode == "crossed" else "isolated"
             trigger_order = await self._session.create_trigger_order(
                 symbol=pair,
                 type=type,
@@ -310,7 +315,7 @@ class PerpBitget:
                 params={
                     "reduceOnly": reduce,
                     "tradeSide": trade_side,
-                    # "marginMode": margin_mode,
+                    "marginMode": margin_mode,
                 },
             )
             resp = Info(success=True, message="Trigger Order set up")
