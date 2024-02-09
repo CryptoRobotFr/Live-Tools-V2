@@ -275,9 +275,12 @@ class PerpBybit:
                 },
             )
             order_id = resp["id"]
-            pair = self.pair_to_ext_pair(resp["symbol"])
-            order = await self.get_order_by_id(order_id, pair)
-            return order
+            return order_id
+            # Temporary disable fetch order to avoid not found issue
+            # Cf. https://github.com/ccxt/ccxt/issues/16880
+            # pair = self.pair_to_ext_pair(resp["symbol"])
+            # order = await self.get_order_by_id(order_id, pair)
+            # return order
         except Exception as e:
             if error:
                 raise e
