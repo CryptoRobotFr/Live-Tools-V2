@@ -265,7 +265,7 @@ class PerpBitget:
         try:
             pair = self.ext_pair_to_pair(pair)
             trade_side = "Open" if reduce is False else "Close"
-            marginMode = "cross" if margin_mode == "crossed" else "isolated"
+            margin_mode = "cross" if margin_mode == "crossed" else "isolated"
             resp = await self._session.create_order(
                 symbol=pair,
                 type=type,
@@ -304,7 +304,7 @@ class PerpBitget:
         try:
             pair = self.ext_pair_to_pair(pair)
             trade_side = "Open" if reduce is False else "Close"
-            marginMode = "cross" if margin_mode == "crossed" else "isolated"
+            margin_mode = "cross" if margin_mode == "crossed" else "isolated"
             trigger_order = await self._session.create_trigger_order(
                 symbol=pair,
                 type=type,
