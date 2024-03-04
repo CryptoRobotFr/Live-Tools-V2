@@ -184,7 +184,9 @@ async def main():
         password=account["password"],
     )
     invert_side = {"long": "sell", "short": "buy"}
-    print(f"--- Execution started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---")
+    print(
+        f"--- Execution started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---"
+    )
     try:
         await exchange.load_markets()
 
@@ -197,7 +199,9 @@ async def main():
         pairs = list(params.keys())
 
         try:
-            print(f"Setting {margin_mode} x{exchange_leverage} on {len(pairs)} pairs...")
+            print(
+                f"Setting {margin_mode} x{exchange_leverage} on {len(pairs)} pairs..."
+            )
             tasks = [
                 exchange.set_margin_mode_and_leverage(
                     pair, margin_mode, exchange_leverage
@@ -234,8 +238,6 @@ async def main():
                 )
 
             df_list[pair] = df
-
-        
 
         usdt_balance = await exchange.get_balance()
         usdt_balance = usdt_balance.total
@@ -318,25 +320,30 @@ async def main():
                     pair=position.pair,
                     side=invert_side[position.side],
                     price=row["ma_base"],
-                    size=position.size,
+                    size=exchange.amount_to_precision(position.pair, position.size),
                     type="limit",
                     reduce=True,
                     margin_mode=margin_mode,
+                    error=False,
                 )
             )
             if position.side == "long":
                 sl_side = "sell"
-                sl_price = exchange.price_to_precision(position.pair, position.entry_price * (1 - sl))
+                sl_price = exchange.price_to_precision(
+                    position.pair, position.entry_price * (1 - sl)
+                )
             elif position.side == "short":
                 sl_side = "buy"
-                sl_price = exchange.price_to_precision(position.pair, position.entry_price * (1 + sl))
+                sl_price = exchange.price_to_precision(
+                    position.pair, position.entry_price * (1 + sl)
+                )
             tasks_close.append(
                 exchange.place_trigger_order(
                     pair=position.pair,
                     side=sl_side,
                     trigger_price=sl_price,
                     price=None,
-                    size=position.size,
+                    size=exchange.amount_to_precision(position.pair, position.size),
                     type="market",
                     reduce=True,
                     margin_mode=margin_mode,
@@ -358,12 +365,15 @@ async def main():
                         trigger_price=exchange.price_to_precision(
                             position.pair, row[f"ma_low_{i+1}"] * 1.005
                         ),
-                        size=(
-                            (params[position.pair]["size"] * usdt_balance)
-                            / len(params[position.pair]["envelopes"])
-                            * size_leverage
-                        )
-                        / row[f"ma_low_{i+1}"],
+                        size=exchange.amount_to_precision(
+                            position.pair,
+                            (
+                                (params[position.pair]["size"] * usdt_balance)
+                                / len(params[position.pair]["envelopes"])
+                                * size_leverage
+                            )
+                            / row[f"ma_low_{i+1}"],
+                        ),
                         type="limit",
                         reduce=False,
                         margin_mode=margin_mode,
@@ -385,19 +395,21 @@ async def main():
                         price=exchange.price_to_precision(
                             position.pair, row[f"ma_high_{i+1}"]
                         ),
-                        size=(
-                            (params[position.pair]["size"] * usdt_balance)
-                            / len(params[position.pair]["envelopes"])
-                            * size_leverage
-                        )
-                        / row[f"ma_high_{i+1}"],
+                        size=exchange.amount_to_precision(
+                            position.pair,
+                            (
+                                (params[position.pair]["size"] * usdt_balance)
+                                / len(params[position.pair]["envelopes"])
+                                * size_leverage
+                            )
+                            / row[f"ma_high_{i+1}"],
+                        ),
                         type="limit",
                         reduce=False,
                         margin_mode=margin_mode,
                         error=False,
                     )
                 )
-            
 
         print(f"Placing {len(tasks_close)} close SL / limit order...")
         await asyncio.gather(*tasks_close)  # Limit orders when in positions
@@ -415,16 +427,21 @@ async def main():
                         exchange.place_trigger_order(
                             pair=pair,
                             side="buy",
-                            price=exchange.price_to_precision(pair, row[f"ma_low_{i+1}"]),
+                            price=exchange.price_to_precision(
+                                pair, row[f"ma_low_{i+1}"]
+                            ),
                             trigger_price=exchange.price_to_precision(
                                 pair, row[f"ma_low_{i+1}"] * 1.005
                             ),
-                            size=(
-                                (params[pair]["size"] * usdt_balance)
-                                / len(params[pair]["envelopes"])
-                                * size_leverage
-                            )
-                            / row[f"ma_low_{i+1}"],
+                            size=exchange.amount_to_precision(
+                                pair,
+                                (
+                                    (params[pair]["size"] * usdt_balance)
+                                    / len(params[pair]["envelopes"])
+                                    * size_leverage
+                                )
+                                / row[f"ma_low_{i+1}"],
+                            ),
                             type="limit",
                             reduce=False,
                             margin_mode=margin_mode,
@@ -439,13 +456,18 @@ async def main():
                             trigger_price=exchange.price_to_precision(
                                 pair, row[f"ma_high_{i+1}"] * 0.995
                             ),
-                            price=exchange.price_to_precision(pair, row[f"ma_high_{i+1}"]),
-                            size=(
-                                (params[pair]["size"] * usdt_balance)
-                                / len(params[pair]["envelopes"])
-                                * size_leverage
-                            )
-                            / row[f"ma_high_{i+1}"],
+                            price=exchange.price_to_precision(
+                                pair, row[f"ma_high_{i+1}"]
+                            ),
+                            size=exchange.amount_to_precision(
+                                pair,
+                                (
+                                    (params[pair]["size"] * usdt_balance)
+                                    / len(params[pair]["envelopes"])
+                                    * size_leverage
+                                )
+                                / row[f"ma_high_{i+1}"],
+                            ),
                             type="limit",
                             reduce=False,
                             margin_mode=margin_mode,
@@ -457,7 +479,9 @@ async def main():
         await asyncio.gather(*tasks_open)  # Limit orders when not in positions
 
         await exchange.close()
-        print(f"--- Execution finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---")
+        print(
+            f"--- Execution finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---"
+        )
     except Exception as e:
         await exchange.close()
         raise e
