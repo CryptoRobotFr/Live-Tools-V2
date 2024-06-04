@@ -27,132 +27,154 @@ async def main():
             "ma_base_window": 7,
             "envelopes": [0.07, 0.1, 0.15],
             "size": 0.1,
+            "sides": ["long", "short"],
         },
         "ETH/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15],
             "size": 0.1,
+            "sides": ["long", "short"],
         },
         "ADA/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.09, 0.12, 0.15],
             "size": 0.1,
+            "sides": ["long", "short"],
         },
         "AVAX/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.09, 0.12, 0.15],
             "size": 0.1,
+            "sides": ["long", "short"],
         },
         "EGLD/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "KSM/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "OCEAN/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "REN/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "ACH/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "APE/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "CRV/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "DOGE/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "ENJ/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "FET/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "ICP/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "IMX/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "LDO/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "MAGIC/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "REEF/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "SAND/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "TRX/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
         "XTZ/USDT": {
             "src": "close",
             "ma_base_window": 5,
             "envelopes": [0.07, 0.1, 0.15, 0.2],
             "size": 0.05,
+            "sides": ["long", "short"],
         },
     }
 
@@ -162,7 +184,9 @@ async def main():
         password=account["password"],
     )
     invert_side = {"long": "sell", "short": "buy"}
-    print(f"--- Execution started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---")
+    print(
+        f"--- Execution started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---"
+    )
     try:
         await exchange.load_markets()
 
@@ -175,7 +199,9 @@ async def main():
         pairs = list(params.keys())
 
         try:
-            print(f"Setting {margin_mode} x{exchange_leverage} on {len(pairs)} pairs...")
+            print(
+                f"Setting {margin_mode} x{exchange_leverage} on {len(pairs)} pairs..."
+            )
             tasks = [
                 exchange.set_margin_mode_and_leverage(
                     pair, margin_mode, exchange_leverage
@@ -212,8 +238,6 @@ async def main():
                 )
 
             df_list[pair] = df
-
-        
 
         usdt_balance = await exchange.get_balance()
         usdt_balance = usdt_balance.total
@@ -296,25 +320,30 @@ async def main():
                     pair=position.pair,
                     side=invert_side[position.side],
                     price=row["ma_base"],
-                    size=position.size,
+                    size=exchange.amount_to_precision(position.pair, position.size),
                     type="limit",
                     reduce=True,
                     margin_mode=margin_mode,
+                    error=False,
                 )
             )
             if position.side == "long":
                 sl_side = "sell"
-                sl_price = exchange.price_to_precision(position.pair, position.entry_price * (1 - sl))
+                sl_price = exchange.price_to_precision(
+                    position.pair, position.entry_price * (1 - sl)
+                )
             elif position.side == "short":
                 sl_side = "buy"
-                sl_price = exchange.price_to_precision(position.pair, position.entry_price * (1 + sl))
+                sl_price = exchange.price_to_precision(
+                    position.pair, position.entry_price * (1 + sl)
+                )
             tasks_close.append(
                 exchange.place_trigger_order(
                     pair=position.pair,
                     side=sl_side,
                     trigger_price=sl_price,
                     price=None,
-                    size=position.size,
+                    size=exchange.amount_to_precision(position.pair, position.size),
                     type="market",
                     reduce=True,
                     margin_mode=margin_mode,
@@ -336,12 +365,15 @@ async def main():
                         trigger_price=exchange.price_to_precision(
                             position.pair, row[f"ma_low_{i+1}"] * 1.005
                         ),
-                        size=(
-                            (params[position.pair]["size"] * usdt_balance)
-                            / len(params[position.pair]["envelopes"])
-                            * size_leverage
-                        )
-                        / row[f"ma_low_{i+1}"],
+                        size=exchange.amount_to_precision(
+                            position.pair,
+                            (
+                                (params[position.pair]["size"] * usdt_balance)
+                                / len(params[position.pair]["envelopes"])
+                                * size_leverage
+                            )
+                            / row[f"ma_low_{i+1}"],
+                        ),
                         type="limit",
                         reduce=False,
                         margin_mode=margin_mode,
@@ -363,19 +395,21 @@ async def main():
                         price=exchange.price_to_precision(
                             position.pair, row[f"ma_high_{i+1}"]
                         ),
-                        size=(
-                            (params[position.pair]["size"] * usdt_balance)
-                            / len(params[position.pair]["envelopes"])
-                            * size_leverage
-                        )
-                        / row[f"ma_high_{i+1}"],
+                        size=exchange.amount_to_precision(
+                            position.pair,
+                            (
+                                (params[position.pair]["size"] * usdt_balance)
+                                / len(params[position.pair]["envelopes"])
+                                * size_leverage
+                            )
+                            / row[f"ma_high_{i+1}"],
+                        ),
                         type="limit",
                         reduce=False,
                         margin_mode=margin_mode,
                         error=False,
                     )
                 )
-            
 
         print(f"Placing {len(tasks_close)} close SL / limit order...")
         await asyncio.gather(*tasks_close)  # Limit orders when in positions
@@ -388,52 +422,66 @@ async def main():
         for pair in pairs_not_in_position:
             row = df_list[pair].iloc[-2]
             for i in range(len(params[pair]["envelopes"])):
-                tasks_open.append(
-                    exchange.place_trigger_order(
-                        pair=pair,
-                        side="buy",
-                        price=exchange.price_to_precision(pair, row[f"ma_low_{i+1}"]),
-                        trigger_price=exchange.price_to_precision(
-                            pair, row[f"ma_low_{i+1}"] * 1.005
-                        ),
-                        size=(
-                            (params[pair]["size"] * usdt_balance)
-                            / len(params[pair]["envelopes"])
-                            * size_leverage
+                if "long" in params[pair]["sides"]:
+                    tasks_open.append(
+                        exchange.place_trigger_order(
+                            pair=pair,
+                            side="buy",
+                            price=exchange.price_to_precision(
+                                pair, row[f"ma_low_{i+1}"]
+                            ),
+                            trigger_price=exchange.price_to_precision(
+                                pair, row[f"ma_low_{i+1}"] * 1.005
+                            ),
+                            size=exchange.amount_to_precision(
+                                pair,
+                                (
+                                    (params[pair]["size"] * usdt_balance)
+                                    / len(params[pair]["envelopes"])
+                                    * size_leverage
+                                )
+                                / row[f"ma_low_{i+1}"],
+                            ),
+                            type="limit",
+                            reduce=False,
+                            margin_mode=margin_mode,
+                            error=False,
                         )
-                        / row[f"ma_low_{i+1}"],
-                        type="limit",
-                        reduce=False,
-                        margin_mode=margin_mode,
-                        error=False,
                     )
-                )
-                tasks_open.append(
-                    exchange.place_trigger_order(
-                        pair=pair,
-                        side="sell",
-                        trigger_price=exchange.price_to_precision(
-                            pair, row[f"ma_high_{i+1}"] * 0.995
-                        ),
-                        price=exchange.price_to_precision(pair, row[f"ma_high_{i+1}"]),
-                        size=(
-                            (params[pair]["size"] * usdt_balance)
-                            / len(params[pair]["envelopes"])
-                            * size_leverage
+                if "short" in params[pair]["sides"]:
+                    tasks_open.append(
+                        exchange.place_trigger_order(
+                            pair=pair,
+                            side="sell",
+                            trigger_price=exchange.price_to_precision(
+                                pair, row[f"ma_high_{i+1}"] * 0.995
+                            ),
+                            price=exchange.price_to_precision(
+                                pair, row[f"ma_high_{i+1}"]
+                            ),
+                            size=exchange.amount_to_precision(
+                                pair,
+                                (
+                                    (params[pair]["size"] * usdt_balance)
+                                    / len(params[pair]["envelopes"])
+                                    * size_leverage
+                                )
+                                / row[f"ma_high_{i+1}"],
+                            ),
+                            type="limit",
+                            reduce=False,
+                            margin_mode=margin_mode,
+                            error=False,
                         )
-                        / row[f"ma_high_{i+1}"],
-                        type="limit",
-                        reduce=False,
-                        margin_mode=margin_mode,
-                        error=False,
                     )
-                )
 
         print(f"Placing {len(tasks_open)} open limit order...")
         await asyncio.gather(*tasks_open)  # Limit orders when not in positions
 
         await exchange.close()
-        print(f"--- Execution finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---")
+        print(
+            f"--- Execution finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---"
+        )
     except Exception as e:
         await exchange.close()
         raise e

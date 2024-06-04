@@ -260,12 +260,12 @@ class PerpBitget:
         type="limit",
         reduce=False,
         margin_mode="crossed",
-        error=True,
+        error=False,
     ) -> Order:
         try:
             pair = self.ext_pair_to_pair(pair)
             trade_side = "Open" if reduce is False else "Close"
-            marginMode = "cross" if margin_mode == "crossed" else "isolated"
+            margin_mode = "cross" if margin_mode == "crossed" else "isolated"
             resp = await self._session.create_order(
                 symbol=pair,
                 type=type,
@@ -283,10 +283,10 @@ class PerpBitget:
             order = await self.get_order_by_id(order_id, pair)
             return order
         except Exception as e:
+            print(f"Error {type} {side} {size} {pair} - Price {price} - Error => {str(e)}")
             if error:
                 raise e
             else:
-                print(e)
                 return None
 
     async def place_trigger_order(
@@ -299,12 +299,12 @@ class PerpBitget:
         type="limit",
         reduce=False,
         margin_mode="crossed",
-        error=True,
+        error=False,
     ) -> Info:
         try:
             pair = self.ext_pair_to_pair(pair)
             trade_side = "Open" if reduce is False else "Close"
-            marginMode = "cross" if margin_mode == "crossed" else "isolated"
+            margin_mode = "cross" if margin_mode == "crossed" else "isolated"
             trigger_order = await self._session.create_trigger_order(
                 symbol=pair,
                 type=type,
@@ -321,10 +321,10 @@ class PerpBitget:
             resp = Info(success=True, message="Trigger Order set up")
             return resp
         except Exception as e:
+            print(f"Error {type} {side} {size} {pair} - Trigger {trigger_price} - Price {price} - Error => {str(e)}")
             if error:
                 raise e
             else:
-                print(e)
                 return None
 
     async def get_open_orders(self, pair) -> List[Order]:
