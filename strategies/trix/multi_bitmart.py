@@ -279,7 +279,7 @@ async def main():
             row = df.iloc[-2]
             
             if position_object["side"] == "long":
-                if row["trix_hist"] > 0:
+                if row["trix_hist"] < 0:
                     close_size = min(position_object["size"], exchange_position_size)
                     try:
                         order = await exchange.place_order(
