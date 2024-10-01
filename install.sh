@@ -56,7 +56,7 @@ cd ..
 crontab -l | grep -q 'bash ./Live-Tools-V2/1hcron.sh'
 if [ $? -ne 0 ]; then
     # Ajouter la tâche cron
-    (crontab -l 2>/dev/null; echo "0 * * * * /bin/bash ./Live-Tools-V2/1hcron.sh") | crontab -
+    (crontab -l 2>/dev/null; echo "0 * * * * /bin/bash ./Live-Tools-V2/1hcron.sh >> cronlog.log") | crontab -
     echo "Tâche cron ajoutée avec succès."
 else
     echo "La tâche cron existe déjà."
