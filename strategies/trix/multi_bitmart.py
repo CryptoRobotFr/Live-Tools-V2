@@ -194,7 +194,7 @@ async def main():
             key_param_object = key_params_copy[key_param]
             info = exchange.get_pair_info(key_param_object["pair"])
             if info is None:
-                await dl.send_now(f"Pair {key_param_object["pair"]} not found, removing from params...", level="WARNING")
+                await dl.send_now(f"Pair {key_param_object['pair']} not found, removing from params...", level="WARNING")
                 del key_params[key_param]
                 pair_list.remove(key_param_object["pair"])
         
