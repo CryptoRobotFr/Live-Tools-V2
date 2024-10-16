@@ -16,10 +16,10 @@ async def main():
     account = ACCOUNTS["bitget1"]
 
     margin_mode = "isolated"  # isolated or crossed
-    exchange_leverage = 3
+    leverage = 3
+    hedge_mode = True # Warning, set to False if you are in one way mode
 
     tf = "1h"
-    size_leverage = 3
     sl = 0.3
     params = {
         "BTC/USDT": {
@@ -200,11 +200,11 @@ async def main():
 
         try:
             print(
-                f"Setting {margin_mode} x{exchange_leverage} on {len(pairs)} pairs..."
+                f"Setting {margin_mode} x{leverage} on {len(pairs)} pairs..."
             )
             tasks = [
                 exchange.set_margin_mode_and_leverage(
-                    pair, margin_mode, exchange_leverage
+                    pair, margin_mode, leverage
                 )
                 for pair in pairs
             ]
@@ -324,6 +324,7 @@ async def main():
                     type="limit",
                     reduce=True,
                     margin_mode=margin_mode,
+                    hedge_mode=hedge_mode,
                     error=False,
                 )
             )
@@ -347,6 +348,7 @@ async def main():
                     type="market",
                     reduce=True,
                     margin_mode=margin_mode,
+                    hedge_mode=hedge_mode,
                     error=False,
                 )
             )
@@ -370,13 +372,14 @@ async def main():
                             (
                                 (params[position.pair]["size"] * usdt_balance)
                                 / len(params[position.pair]["envelopes"])
-                                * size_leverage
+                                * leverage
                             )
                             / row[f"ma_low_{i+1}"],
                         ),
                         type="limit",
                         reduce=False,
                         margin_mode=margin_mode,
+                        hedge_mode=hedge_mode,
                         error=False,
                     )
                 )
@@ -400,13 +403,14 @@ async def main():
                             (
                                 (params[position.pair]["size"] * usdt_balance)
                                 / len(params[position.pair]["envelopes"])
-                                * size_leverage
+                                * leverage
                             )
                             / row[f"ma_high_{i+1}"],
                         ),
                         type="limit",
                         reduce=False,
                         margin_mode=margin_mode,
+                        hedge_mode=hedge_mode,
                         error=False,
                     )
                 )
@@ -438,13 +442,14 @@ async def main():
                                 (
                                     (params[pair]["size"] * usdt_balance)
                                     / len(params[pair]["envelopes"])
-                                    * size_leverage
+                                    * leverage
                                 )
                                 / row[f"ma_low_{i+1}"],
                             ),
                             type="limit",
                             reduce=False,
                             margin_mode=margin_mode,
+                            hedge_mode=hedge_mode,
                             error=False,
                         )
                     )
@@ -464,13 +469,14 @@ async def main():
                                 (
                                     (params[pair]["size"] * usdt_balance)
                                     / len(params[pair]["envelopes"])
-                                    * size_leverage
+                                    * leverage
                                 )
                                 / row[f"ma_high_{i+1}"],
                             ),
                             type="limit",
                             reduce=False,
                             margin_mode=margin_mode,
+                            hedge_mode=hedge_mode,
                             error=False,
                         )
                     )

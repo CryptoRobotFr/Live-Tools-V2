@@ -260,6 +260,7 @@ class PerpBitget:
         type="limit",
         reduce=False,
         margin_mode="crossed",
+        hedge_mode=False,
         error=False,
     ) -> Order:
         try:
@@ -276,6 +277,7 @@ class PerpBitget:
                     "reduceOnly": reduce,
                     "tradeSide": trade_side,
                     "marginMode": margin_mode,
+                    "hedged": hedge_mode,
                 },
             )
             order_id = resp["id"]
@@ -299,6 +301,7 @@ class PerpBitget:
         type="limit",
         reduce=False,
         margin_mode="crossed",
+        hedge_mode=False,
         error=False,
     ) -> Info:
         try:
@@ -316,6 +319,7 @@ class PerpBitget:
                     "reduceOnly": reduce,
                     "tradeSide": trade_side,
                     "marginMode": margin_mode,
+                    "hedged": hedge_mode,
                 },
             )
             resp = Info(success=True, message="Trigger Order set up")
