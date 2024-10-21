@@ -207,9 +207,9 @@ async def main():
             # Check if param have a size
             if "size" not in key_param_object.keys():
                 key_param_object["size"] = 1/len(key_params)
-            if f"{key_param_object["pair"]}-{key_param_object["tf"]}" not in tf_pair_loaded:
-                tf_pair_loaded.append(f"{key_param_object["pair"]}-{key_param_object["tf"]}")
-                keys.append(f"{key_param_object["pair"]}-{key_param_object["tf"]}")
+            if f"{key_param_object['pair']}-{key_param_object['tf']}" not in tf_pair_loaded:
+                tf_pair_loaded.append(f"{key_param_object['pair']}-{key_param_object['tf']}")
+                keys.append(f"{key_param_object['pair']}-{key_param_object['tf']}")
 
                 tasks.append(exchange.get_last_ohlcv(key_param_object["pair"], key_param_object["tf"], 600))
 
@@ -219,7 +219,7 @@ async def main():
 
         for key_param in key_params.keys():
             key_param_object = key_params[key_param]
-            df = df_data[f"{key_param_object["pair"]}-{key_param_object["tf"]}"]
+            df = df_data[f"{key_param_object['pair']}-{key_param_object['tf']}"]
 
             trix_obj = Trix(
                 close=df["close"],
