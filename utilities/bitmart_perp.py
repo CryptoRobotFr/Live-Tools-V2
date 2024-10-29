@@ -114,7 +114,7 @@ class PerpBitmart:
 
     async def get_last_ohlcv(self, pair, timeframe, limit=1000) -> pd.DataFrame:
         pair = self.ext_pair_to_pair(pair)
-        bitmart_limit = 1000
+        bitmart_limit = 500
         ts_dict = {
             "1m": 1 * 60 * 1000,
             "5m": 5 * 60 * 1000,
