@@ -131,8 +131,8 @@ class PerpBitget:
                 self._session.fetch_ohlcv(
                     pair,
                     timeframe,
+                    limit=bitget_limit,
                     params={
-                        "limit": bitget_limit,
                         "startTime": str(current_ts),
                         "endTime": str(req_end_ts),
                     },
